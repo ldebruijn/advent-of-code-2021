@@ -34,6 +34,25 @@ impl Line {
     fn is_horizontal_line(&self) -> bool {
         &self.from.x == &self.to.x || &self.from.y == &self.to.y
     }
+    fn is_45_degree_line(&self) -> bool {
+        // println!("{}", &self);
+        let mut delta_x = 0;
+        if &self.from.x > &self.to.x {
+            delta_x = &self.from.x - &self.to.x;
+        } else {
+            delta_x = &self.to.x - &self.from.x;
+        }
+
+        let mut delta_y = 0;
+        if &self.from.y > &self.to.y {
+            delta_y = &self.from.y - &self.to.y;
+        } else {
+            delta_y = &self.to.y - &self.from.y;
+        }
+        // println!("x {} y {} delta {}", delta_x, delta_y, delta_x == delta_y);
+
+        delta_x == delta_y
+    }
 }
 
 impl Display for Line {
@@ -52,6 +71,35 @@ fn build_point(input: &str) -> Point {
 }
 
 fn calculate_path(line: &Line) -> Vec<Point> {
+    // diagonal line
+    if line.is_45_degree_line() {
+        // println!("diagonal");
+        let mut x = Vec::new();
+        if line.from.x < line.to.x {
+            x = (line.from.x..line.to.x + 1).into_iter().collect();
+        } else {
+            x = (line.to.x..line.from.x + 1).into_iter().rev().collect();
+        }
+
+        let mut y = Vec::new();
+        if line.from.y < line.to.y {
+            y = (line.from.y..line.to.y + 1).into_iter().collect();
+        } else {
+            y = (line.to.y..line.from.y + 1).into_iter().rev().collect();
+        }
+        let path = x.iter().zip(y.iter())
+            .map(|(x, y)| Point {
+                x: *x,
+                y: *y
+            })
+            .collect();
+
+        // println!("Diagonal path input {} {:?}", line, path);
+
+        return path
+    }
+
+    // straight lines
     // println!("line {}", line);
     if line.from.x == line.to.x {
         return if line.from.y < line.to.y {
@@ -93,9 +141,9 @@ fn calculate_path(line: &Line) -> Vec<Point> {
 }
 
 fn apply_path(path: Vec<Point>, map: &mut Vec<Vec<i32>>) {
-    println!("Path {:?}", path);
+    // println!("Path {:?}", path);
     for point in path {
-        println!("Point {}", point);
+        // println!("Point {}", point);
         map[point.y as usize][point.x as usize] += 1;
     }
 }
@@ -112,7 +160,7 @@ fn main() {
     let mut map = vec![vec![0; 1000]; 1000];
 
     for line in input {
-        if !line.is_horizontal_line() {
+        if !line.is_horizontal_line() && !line.is_45_degree_line() {
             continue;
         }
 
